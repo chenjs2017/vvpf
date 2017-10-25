@@ -364,6 +364,7 @@
 	        
 	        $ftshlink = PFSAIssetControl('ftshlink','','0');
 
+			$vals = pf_get_location();
 	        foreach ($featured_terms as $featured_terms_single) {
 
 	        	/*Get term parent*/
@@ -388,7 +389,12 @@
 					}
 					if ($setup3_modulessetup_awfeatures == 0){
 						$features_block_ex .= '<div class="pf-features-detail'.$col_text.$checked_text2.'"><i class="pfadmicon-glyph-'.$checked_text.'"></i> ';
-						if($ftshlink==1){$features_block_ex .= '<a href="'.get_term_link($featured_terms_single->term_id,'pointfinderfeatures').'">';}
+						if($ftshlink==1){
+							$features_block_ex .= '<a href="'.get_term_link($featured_terms_single->term_id,'pointfinderfeatures') . 
+								'?field296725954161956900000=' . urlencode($vals['addr']) . 
+								'&pointfinder_google_search_coord=' . urlencode($vals['lat'] . ',' . $vals['lon']) . 
+								'">';
+							}
 			        	$features_block_ex .= $featured_terms_single->name;
 			        	if($ftshlink==1){$features_block_ex .= '</a>';}
 			        	$features_block_ex .= '</div>';	
@@ -411,8 +417,10 @@
 	        $features_block = '';
 
 	        if(count($featured_terms) > 0){
+				$f_title = '在「' . $vals['addr'] . '」附近發現：';
+				
 		        $features_block .= '<div class="pftrwcontainer hidden-print pf-itempagedetail-element">
-										<div class="pfitempagecontainerheader">'.$setup3_pointposttype_pt6.'</div>
+										<div class="pfitempagecontainerheader">'.$f_title .'</div>
 										<div class="pfmaincontactinfo">';
 
 				

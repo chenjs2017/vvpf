@@ -20,37 +20,35 @@ function pf_check_location(&$vals) {
 }
 
 function pf_get_location() {
-	if ($_REQUEST['']) {
-			
-	}
-	
-	if (isset($_SESSION['agl-values'])) {
+	if (is_single() && get_the_id()) {
+		$addr = get_post_meta( get_the_id(), 'webbupointfinder_items_address', true);
+		$coord = get_post_meta( get_the_id(), 'webbupointfinder_items_location', true);
+		$arr = explode(',', $coord);
+		$vals = array('addr' => $addr, 'lat' => $arr[0], 'lon' => $arr[1]);
+	}elseif ($_REQUEST['pointfinder_google_search_coord'] && $_REQUEST['field296725954161956900000']) {
+		$coord = $_REQUEST['pointfinder_google_search_coord'];
+		$addr  = $_REQUEST['field296725954161956900000'];
+		$arr = explode(',', $coord);
+		$vals = array('addr' => $addr, 'lat' => $arr[0], 'lon' => $arr[1]);
+	}elseif (isset($_SESSION['agl-values'])) {
     	$vals = $_SESSION['agl-values'];
-    	if (pf_check_location($vals)) {
-      		return $vals;
-    	}
-  	}
-  	if ($cookie !='') {
-    	$cookie = stripslashes($cookie) ;
-    	$vals = json_decode($cookie, true);
-    	if (pf_check_location($val)) {
-      		return $vals;
-    	}
-  	}
-
-  	$cookie = isset($_COOKIE['agl-values']) ? $_COOKIE['agl-values'] : '';
-  	if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-      	$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-	} else {
-      	$ip = $_SERVER['REMOTE_ADDR'];
-  	}
-  	$url = 'http://pro.ip-api.com/json/' . $ip . '?key=E8N639AlU3vbDrk';
-  	$content = file_get_contents($url);
-  	$vals = json_decode($content, true);
-  	$address = $vals['city'] . ',' . $vals['region'] . ',' . $vals['country'];
-  	$vals['addr'] = $address;
-  	$_SESSION['agl-values'] = $vals;
-  	return $vals;
+  	}else {
+		if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+			$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+		} else {
+			$ip = $_SERVER['REMOTE_ADDR'];
+		}
+		$url = 'http://pro.ip-api.com/json/' . $ip . '?key=E8N639AlU3vbDrk';
+		$content = file_get_contents($url);
+		$vals = json_decode($content, true);
+		$address = $vals['city'] . ',' . $vals['region'] . ',' . $vals['country'];
+		$vals['addr'] = $address;
+		$_SESSION['agl-values'] = $vals;
+	}
+	if (pf_check_location($vals)) {
+   		return $vals;
+   	}
+  	return $false;
 }
 
 function get_near_by() {

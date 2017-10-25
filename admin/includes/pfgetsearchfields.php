@@ -1471,7 +1471,14 @@ if ( ! class_exists( 'PF_SF_Val' ) ){
 
 											$nefv = $ne2fv = $swfv = $sw2fv = $pointfinder_google_search_coord1 = '';
 
-											if (isset($_GET['pointfinder_google_search_coord'])) {$pointfinder_google_search_coord1 = $_GET['pointfinder_google_search_coord'];}
+											if (isset($_GET['pointfinder_google_search_coord'])) {
+												$pointfinder_google_search_coord1 = $_GET['pointfinder_google_search_coord'];
+											}else {
+												$vals = pf_get_location();
+												$pointfinder_google_search_coord1 = $vals['lat'] . ',' . $vals['lon'];
+												$valtext = 'value="' . $vals['addr'] . '"';
+											}
+
 											
 											if ($minisearch == 1) {
 												$statustextform2 = 'class="pfminigoogleaddon"';

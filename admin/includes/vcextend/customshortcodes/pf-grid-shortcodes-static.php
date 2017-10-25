@@ -638,9 +638,11 @@ function pf_itemgrid2_func( $atts ) {
 
 		$st22srloc = PFSAIssetControl('st22srloc','',0);
 
+/*
 		print_r($loop->query).PHP_EOL;
 		echo '<br/>';
 		echo $loop->request.PHP_EOL;
+		*/
 
 		
 

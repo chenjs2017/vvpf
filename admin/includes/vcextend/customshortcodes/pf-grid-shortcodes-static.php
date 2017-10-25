@@ -283,10 +283,55 @@ function pf_itemgrid2_func( $atts ) {
 			}
 
 
+//jschen
+				function feature_sort($content) {
+					return edit_posts_orderby($content, true);
+				}
+				function edit_posts_orderby($orderby_statement, $add_feature= false) {
+					global $wpdb;
+					$vals = pf_get_location();
+					$lat = $vals['lat'];
+					$lon = $vals['lon'];	
+					$distance_field = "(3936 * ACOS((sin(ifnull(". $lat .",0) / 57.29577951) * SIN(ifnull(substring_index(location.meta_value,',',1),0) / 57.29577951)) +
+							(COS(ifnull(". $lat .",0) / 57.29577951) * COS(ifnull(substring_index(location.meta_value,',',1),0) / 57.29577951) *
+ 							COS(ifnull(substring_index(location.meta_value,',',-1),0) / 57.29577951 - ifnull(". $lon .",0)/ 57.29577951))))";
+					$orderby_statement = '';
+					if ($add_feature) {
+						$orderby_statement .= $wpdb->prefix . "postmeta.meta_value*1 desc,";
+					}
+					$orderby_statement .= $distance_field;
+					return $orderby_statement;
+				}
+				function feature_join($content) {
+					return edit_posts_join_paged($content,true);
+				}
+				function edit_posts_join_paged($join_paged_statement, $add_feature = false) {
+					global $wpdb;
+					if ($add_feature) {
+						$join_paged_statement .= " inner JOIN " . $wpdb->prefix . "postmeta 
+								ON " . $wpdb->prefix ."postmeta.post_id =" . $wpdb->prefix ."posts.ID 
+								and " . $wpdb->prefix . "postmeta.meta_key='webbupointfinder_item_featuredmarker'";
+					}
+					$join_paged_statement .= " inner JOIN ". $wpdb->prefix."postmeta location 
+								ON location.post_id = " . $wpdb->prefix ."posts.ID and location.meta_key='webbupointfinder_items_location'";
+					return $join_paged_statement;	
+				}
+
+
+
+
 			if($pfg_orderby != ''){
-				if($pfg_orderby == 'date' || $pfg_orderby == 'title'){
+					if ($pfg_orderby =='recommend') {
+						add_filter('posts_orderby', 'feature_sort');
+						add_filter('posts_join_paged', 'feature_join');
+					}
+					elseif ($pfg_orderby =='distance') {
+						add_filter('posts_orderby', 'edit_posts_orderby');
+						add_filter('posts_join_paged', 'edit_posts_join_paged');
+									
+					}elseif($pfg_orderby == 'date' || $pfg_orderby == 'title'){
 					
-					$args['orderby'] = array('meta_value_num' => 'DESC' , $pfg_orderby => $pfg_order);
+					$args['orderby'] = array('meta_value_num' => 'DESC' , $pfg_orderby => 'DESC');
 					$args['meta_key'] = $meta_key_featured;
 
 					if ($pfrandomize == 'yes') {
@@ -296,7 +341,7 @@ function pf_itemgrid2_func( $atts ) {
 					
 					if (!empty($pfgetdata['manual_args'])) {
 						$args['meta_key'] = $meta_key_featured;
-						$pfgetdata['manual_args']['orderby'] = array('meta_value_num' => 'DESC' , $pfg_orderby => $pfg_order);
+						$pfgetdata['manual_args']['orderby'] = array('meta_value_num' => 'DESC' , $pfg_orderby => 'DESC');
 					}
 
 				}else{
@@ -304,17 +349,17 @@ function pf_itemgrid2_func( $atts ) {
 					$args['meta_key']='webbupointfinder_item_'.$pfg_orderby;
 					
 					if(PFIF_CheckFieldisNumeric_ld($pfg_orderby) == false){
-						$args['orderby']= array('meta_value' => $pfg_order);
+						$args['orderby']= array('meta_value' => 'DESC');
 					}else{
-						$args['orderby']= array('meta_value_num' => $pfg_order);
+						$args['orderby']= array('meta_value_num' => 'DESC');
 					}
 					
 					if (!empty($pfgetdata['manual_args'])) {
 						$pfgetdata['manual_args']['meta_key']='webbupointfinder_item_'.$pfg_orderby;
 						if(PFIF_CheckFieldisNumeric_ld($pfg_orderby) == false){
-							$pfgetdata['manual_args']['orderby'] = array('meta_value' => $pfg_order);
+							$pfgetdata['manual_args']['orderby'] = array('meta_value' => 'DESC');
 						}else{
-							$pfgetdata['manual_args']['orderby'] = array('meta_value_num' => $pfg_order);
+							$pfgetdata['manual_args']['orderby'] = array('meta_value_num' => 'DESC');
 						}
 					}
 					
@@ -331,7 +376,7 @@ function pf_itemgrid2_func( $atts ) {
 					}
 				}else{
 					$args['meta_key'] = $meta_key_featured;
-					$args['orderby'] = array('meta_value_num' => 'DESC' , $setup22_searchresults_defaultsortbytype => $setup22_searchresults_defaultsorttype);
+					$args['orderby'] = array('meta_value_num' => 'DESC' , 'recommend' => 'desc');
 				}
 			}
 			
@@ -487,6 +532,11 @@ function pf_itemgrid2_func( $atts ) {
 		/* End: Coordinate Filter */
 
 		
+
+		remove_filter('posts_orderby', 'edit_posts_orderby');
+ 		remove_filter('posts_join_paged','edit_posts_join_paged');
+		remove_filter('posts_orderby', 'feature_sort');
+		remove_filter('posts_join_paged','feature_join');
 
 
 		/* Start: Image Settings and hover elements */
@@ -989,7 +1039,8 @@ function pf_itemgrid2_func( $atts ) {
 										$ItemDetailArr['if_title'] = get_the_title($pfitemid);
 										$ItemDetailArr['if_excerpt'] = get_the_excerpt();
 										$ItemDetailArr['if_link'] = get_permalink($pfitemid);
-										$ItemDetailArr['if_address'] = esc_html(get_post_meta( $pfitemid, 'webbupointfinder_items_address', true ));
+//										$ItemDetailArr['if_address'] = esc_html(get_post_meta( $pfitemid, 'webbupointfinder_items_address', true ));
+										$ItemDetailArr['if_address'] = esc_html(pf_get_address_with_distance( $pfitemid));
 										$ItemDetailArr['featured_video'] =  get_post_meta( $pfitemid, 'webbupointfinder_item_video', true );
 									/* End: Setup Featured Image */
 

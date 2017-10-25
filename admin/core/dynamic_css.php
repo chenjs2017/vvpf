@@ -460,8 +460,10 @@ $setup13_mapcontrols_barhovercolor = PFSAIssetControl('setup13_mapcontrols_barho
 					echo '<div class="error"><p>'; 
 		        	echo '<h3>'.esc_html__('Point Finder: CSS File System Error','pointfindert2d').'</h3>';
 					echo 'Error Code: '.$wp_filesystem->errors->get_error_code();
+					
 					echo '<br/>Error Message: '.esc_html__( 'Something went wrong: dynamic_css.css could not be created.', 'pointfindert2d' );
 					echo '<br/>Error Detail: '.$wp_filesystem->errors->get_error_message();
+					echo '<br/>Filename ' . $filename;
 					echo "</p></div>";
 				}
 			} elseif ( ! $wp_filesystem->connect() ) {

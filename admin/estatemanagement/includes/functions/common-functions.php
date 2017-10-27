@@ -19,6 +19,15 @@ function pf_check_location(&$vals) {
     return false;
 }
 
+function pf_save_loation_to_session($lat, $lon, $addr) {
+	$vals = array('addr' => $addr, 'lat' => $lat, 'lon' => $lon);
+	if (pf_check_location($vals)) {
+		$_SESSION['agl-values'] = $vals;
+	}else {
+		$_SESSION['agl-values'] = $false;
+	}
+}
+
 function pf_get_location() {
 	if (is_single() && get_the_id()) {
 		$addr = get_post_meta( get_the_id(), 'webbupointfinder_items_address', true);
@@ -107,15 +116,16 @@ function Calculate($lat1, $lon1, $lat2, $lon2) {
   return $miles;
 }
 function pf_get_address_with_distance($pfitemid) {
+	$addr = esc_html(get_post_meta( $pfitemid, 'webbupointfinder_items_address', true ));
 	$vals = pf_get_location();
 	if ($vals != false) {
-			$location = esc_html(get_post_meta( $pfitemid, 'webbupointfinder_items_location', true ));
-			$arr = explode(',', $location );
-			$lat = $arr[0]; 
-			$lon = $arr[1];
-			$dis = Calculate($lat, $lon, $vals['lat'], $vals['lon']);
-			$dis = number_format($dis, 2, '.', ' ');
-			$addr = '[' . $dis . '英里]' . $addr;
+		$location = esc_html(get_post_meta( $pfitemid, 'webbupointfinder_items_location', true ));
+		$arr = explode(',', $location );
+		$lat = $arr[0]; 
+		$lon = $arr[1];
+		$dis = Calculate($lat, $lon, $vals['lat'], $vals['lon']);
+		$dis = number_format($dis, 2, '.', ' ');
+		$addr = '[' . $dis . '英里]' . $addr;
 	}	
 	return $addr;
 }
@@ -1636,7 +1646,7 @@ function PFLangCategoryID_ld($id,$lang){
 		    }
 		}else{
 			$titletext = $params['taxname'];
-			$titlesubtext = $params['taxinfo'];
+			$titlesubtext =  $params['taxinfo'];
 		}
 
 		if (function_exists('is_woocommerce')) {

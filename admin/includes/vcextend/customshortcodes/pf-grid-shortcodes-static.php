@@ -193,7 +193,12 @@ function pf_itemgrid2_func( $atts ) {
 						'terms' => $pfvalue_arr_loc,
 						'operator' => 'IN'
 					);
-					
+					$term_idx = $pfvalue_arr_loc[0];
+					$meta = get_option('pointfinderlocations_vars');
+					if(empty($meta[$term_idx]['pf_lat_of_location']) == false){ $lat = $meta[$term_idx]['pf_lat_of_location'];}else{$lat = '';}
+					if(empty($meta[$term_idx]['pf_lng_of_location']) == false){ $lon = $meta[$term_idx]['pf_lng_of_location'];}else{$lon = '';}
+					$tmpterm = get_term( $term_idx);	
+			 		pf_save_loation_to_session($lat, $lon, $tmpterm->name); 
 				}
 			}
 
@@ -283,39 +288,39 @@ function pf_itemgrid2_func( $atts ) {
 			}
 
 
-//jschen
-				function feature_sort($content) {
-					return edit_posts_orderby($content, true);
+			//jschen customized sort and join
+			function feature_sort($content) {
+				return edit_posts_orderby($content, true);
+			}
+			function edit_posts_orderby($orderby_statement, $add_feature= false) {
+				global $wpdb;
+				$vals = pf_get_location();
+				$lat = $vals['lat'];
+				$lon = $vals['lon'];	
+				$distance_field = "(3936 * ACOS((sin(ifnull(". $lat .",0) / 57.29577951) * SIN(ifnull(substring_index(location.meta_value,',',1),0) / 57.29577951)) +
+						(COS(ifnull(". $lat .",0) / 57.29577951) * COS(ifnull(substring_index(location.meta_value,',',1),0) / 57.29577951) *
+						COS(ifnull(substring_index(location.meta_value,',',-1),0) / 57.29577951 - ifnull(". $lon .",0)/ 57.29577951))))";
+				$orderby_statement = '';
+				if ($add_feature) {
+					$orderby_statement .= "fea.meta_value*1 desc,";
 				}
-				function edit_posts_orderby($orderby_statement, $add_feature= false) {
-					global $wpdb;
-					$vals = pf_get_location();
-					$lat = $vals['lat'];
-					$lon = $vals['lon'];	
-					$distance_field = "(3936 * ACOS((sin(ifnull(". $lat .",0) / 57.29577951) * SIN(ifnull(substring_index(location.meta_value,',',1),0) / 57.29577951)) +
-							(COS(ifnull(". $lat .",0) / 57.29577951) * COS(ifnull(substring_index(location.meta_value,',',1),0) / 57.29577951) *
- 							COS(ifnull(substring_index(location.meta_value,',',-1),0) / 57.29577951 - ifnull(". $lon .",0)/ 57.29577951))))";
-					$orderby_statement = '';
-					if ($add_feature) {
-						$orderby_statement .= "fea.meta_value*1 desc,";
-					}
-					$orderby_statement .= $distance_field;
-					return $orderby_statement;
+				$orderby_statement .= $distance_field;
+				return $orderby_statement;
+			}
+			function feature_join($content) {
+				return edit_posts_join_paged($content,true);
+			}
+			function edit_posts_join_paged($join_paged_statement, $add_feature = false) {
+				global $wpdb;
+				if ($add_feature) {
+					$join_paged_statement .= " inner JOIN " . $wpdb->prefix . "postmeta fea
+							ON fea.post_id =" . $wpdb->prefix ."posts.ID 
+							and fea.meta_key='webbupointfinder_item_featuredmarker'";
 				}
-				function feature_join($content) {
-					return edit_posts_join_paged($content,true);
-				}
-				function edit_posts_join_paged($join_paged_statement, $add_feature = false) {
-					global $wpdb;
-					if ($add_feature) {
-						$join_paged_statement .= " inner JOIN " . $wpdb->prefix . "postmeta fea
-								ON fea.post_id =" . $wpdb->prefix ."posts.ID 
-								and fea.meta_key='webbupointfinder_item_featuredmarker'";
-					}
-					$join_paged_statement .= " inner JOIN ". $wpdb->prefix."postmeta location 
-								ON location.post_id = " . $wpdb->prefix ."posts.ID and location.meta_key='webbupointfinder_items_location'";
-					return $join_paged_statement;	
-				}
+				$join_paged_statement .= " inner JOIN ". $wpdb->prefix."postmeta location 
+							ON location.post_id = " . $wpdb->prefix ."posts.ID and location.meta_key='webbupointfinder_items_location'";
+				return $join_paged_statement;	
+			}
 
 			
 			if($pfg_orderby == ''){
@@ -639,6 +644,7 @@ function pf_itemgrid2_func( $atts ) {
 		$st22srloc = PFSAIssetControl('st22srloc','',0);
 
 /*
+		echo '<br/>';
 		print_r($loop->query).PHP_EOL;
 		echo '<br/>';
 		echo $loop->request.PHP_EOL;
@@ -646,20 +652,12 @@ function pf_itemgrid2_func( $atts ) {
 
 		
 
-		if (!empty($pfgetdata['manual_args'])) {
-			if($loop->post_count == 1) {
-				$pf_found_text = $loop->found_posts.' '.esc_html__('item found','pointfindert2d');
-			}elseif($loop->post_count > 1) {
-				$pf_found_text = $loop->found_posts.' '.esc_html__('items found','pointfindert2d');
-			}
-			$pf_found_text .= ' near ' . pf_get_location() ['addr'];
+		$pf_found_text = ' 在「 ' . pf_get_location() ['addr'] . ' 」附近發現'. $loop->found_posts . '條';
 
-			if ($loop->post_count == 0) {
-				$wpflistdata .= do_shortcode('[pftext_separator title="'.esc_html__('No matching listings','pointfindert2d').'" title_align="separator_align_left"]');
-			} else {
-				$wpflistdata .= do_shortcode('[pftext_separator title="'.esc_html__('Search Results : ','pointfindert2d').' '.$pf_found_text.'" title_align="separator_align_left"]');
-			}
-			
+		if ($loop->post_count == 0) {
+			$wpflistdata .= do_shortcode('[pftext_separator title="'.esc_html__('No matching listings','pointfindert2d').'" title_align="separator_align_left"]');
+		} else {
+			$wpflistdata .= do_shortcode('[pftext_separator title="'. $pf_found_text.'" title_align="separator_align_left"]');
 		}
 
 		$setup22_searchresults_showmapfeature = PFSAIssetControl('setup22_searchresults_showmapfeature','','1');

@@ -136,7 +136,7 @@
 	<?php
 	$pflogintext = "";
     ?>
-		<?php if (!is_page_template('pf-empty-page.php' )  && !is_page_template('terms-conditions.php' )) {?>
+		<?php if (!is_page_template('terms-conditions.php' )) {?>
 		<div id="pf-loading-dialog" class="pftsrwcontainer-overlay"></div>
         <header class="wpf-header hidden-print<?php echo $transparent_header_text;?>" id="pfheadernav">
         	<?php
@@ -368,6 +368,8 @@
         	</div>
             <?php 
             }
+			if (!is_page_template('pf-empty-page.php' )) {
+
             ?>
             <div class="wpf-navwrapper">
             	
@@ -511,4 +513,4 @@
 		
         <div class="wpf-container<?php echo $transparent_header_text;?>">
         	<div id="pfmaincontent" class="wpf-container-inner">
-        <?php }?>
+        <?php }}?>

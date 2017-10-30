@@ -508,9 +508,9 @@
 					</div>
 				</div>
 			</div>
-
+<?php }?>
         </header>
 		
         <div class="wpf-container<?php echo $transparent_header_text;?>">
         	<div id="pfmaincontent" class="wpf-container-inner">
-        <?php }}?>
+        <?php }?>

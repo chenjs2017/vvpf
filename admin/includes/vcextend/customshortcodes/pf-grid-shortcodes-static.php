@@ -9,7 +9,7 @@ function pf_itemgrid2_func( $atts ) {
 	'sortby' => 'ASC',
 	'orderby' => 'title',
 	'items' => 8,
-	'cols' => 4,
+	'cols' => 3,
 	'features'=>array(),
 	'filters' => 'true',
 	'itemboxbg' => '',
@@ -104,8 +104,16 @@ function pf_itemgrid2_func( $atts ) {
 		$pfgetdata['manual_args'] = (!empty($manualargs))? maybe_unserialize(base64_decode($manualargs,true)): '';
 		$pfgetdata['hidden_output'] = (!empty($hidden_output))? maybe_unserialize(base64_decode($hidden_output,true)): '';
 
+		$tour_type_id = 32;
+		if (filter_input(INPUT_GET, 'field_listingtype') == $tour_type_id) {
+			$pfgetdata['cols'] = 1;
+		}elseif (strlen( $pfgetdata['listingtype']) > 0 ){
+			$term = get_term( $pfgetdata['listingtype']);
 
-
+			if (!is_wp_error($term) && ( $term->term_id == $tour_type_id || $term->parent == $tour_type_id)) {
+				$pfgetdata['cols'] = 1;
+			}
+		}
 		if($pfgetdata['cols'] != ''){$pfgrid = 'grid'.$pfgetdata['cols'];}
 
 		
@@ -118,8 +126,6 @@ function pf_itemgrid2_func( $atts ) {
 		if(isset($_GET['pfsearch-filter-ltype']) && !empty($_GET['pfsearch-filter-ltype'])){$pfg_ltype = esc_attr($_GET['pfsearch-filter-ltype']);}
 		if(isset($_GET['pfsearch-filter-itype']) && !empty($_GET['pfsearch-filter-itype'])){$pfg_itype = esc_attr($_GET['pfsearch-filter-itype']);}
 		if(isset($_GET['pfsearch-filter-location']) && !empty($_GET['pfsearch-filter-location'])){$pfg_lotype = esc_attr($_GET['pfsearch-filter-location']);}
-
-		
 		
 		if ( is_front_page() ) {
 	        $pfg_paged = (esc_sql(get_query_var('page'))) ? esc_sql(get_query_var('page')) : 1;   
@@ -181,6 +187,7 @@ function pf_itemgrid2_func( $atts ) {
 					'operator' => 'IN'
 				);
 			}
+
 
 			if($setup3_pointposttype_pt5_check == 1){
 				/* location type*/

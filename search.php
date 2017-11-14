@@ -2,8 +2,14 @@
 get_header();
 	
 	
-	if (isset($_GET['action']) && $_GET['action'] == 'pfs') {
-
+	$tour_type_id = get_option('product_cat_id');	
+	$list_type_id = filter_input(INPUT_GET, 'field_listingtype'); 
+	if ($tour_type_id == $list_type_id) {
+			$url = '/?post_type=product&s=' . $_GET['jobskeyword'];
+			header('Location: ' . $url, true, 302);
+			exit;
+	}
+	if (isset($_GET['action']) && $_GET['action'] == 'pfs' ) {
 		/**
 		*Start: Get search data & apply to query arguments.
 		**/
@@ -404,9 +410,9 @@ get_header();
 		        echo '<div class="pf-page-spacing"></div>';
 		    echo '</section>';
 		
-
 		
 	}else{
+		
 		if(function_exists('PFGetDefaultPageHeader')){PFGetDefaultPageHeader();}
 
 		echo '<div class="pf-blogpage-spacing pfb-top"></div>';

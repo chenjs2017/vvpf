@@ -26,7 +26,7 @@ function PFGetAuthorPageCol1($author_id){
 	$setup3_pointposttype_pt1 = PFSAIssetControl('setup3_pointposttype_pt1','','pfitemfinder');
 	$user_posts = $wpdb->get_var( $wpdb->prepare("SELECT COUNT(*) FROM $wpdb->posts where post_type = %s and post_author = %d and post_status = 'publish'",$setup3_pointposttype_pt1,$user->ID) );
 
-	$user_photo =  wp_get_attachment_image(get_user_meta( $user->ID, 'user_photo', true ),'medium');
+	$user_photo =  wp_get_attachment_image(get_user_meta( $user->ID, 'wp_user_avatar', true ),'medium');
 
 	if (empty($user_photo)) {
 		$user_photo = '<img src="'.get_template_directory_uri().'/images/empty_avatar.jpg"/>';
